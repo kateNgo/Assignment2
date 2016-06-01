@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta charset="utf-8">
+<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" href="css/bootstrap.min.css">
+<link rel="stylesheet" href="css/animate.css">
+<link rel="stylesheet" href="css/jquery-ui.css">
+<link rel="stylesheet" href="css/mycss.css">
+<script type="text/javascript" src="js/jquery-1.11.2.min.js"></script>
+<script type="text/javascript" src="js/validator.min.js"></script>
+<script src="js/jquery-ui.js"></script>
+<script>
+
+</script>
+</head>
+<body>
+<div class="container-fluid" id="mainContent" style="">
+		<div class="col-sm-8 col-sm-offset-2 text-left">
+			<h3>Product List</h3>
+			<ol type="i" id="categoryList1">
+				
+			</ol>
+		</div>
+		<div id="dialog-1" title="Description"></div>
+	</div>
+</body>
+<script>
+$( "#dialog-1" ).dialog({
+	modal: true,
+    autoOpen: false, 
+    buttons: {
+      Ok: function() {
+        $( this ).dialog( "close" );
+      }
+    }
+ });
+var categories = [];
+var products = [];
+var productList="";
+var categoryList="";
+// load categories;
+$.ajax({
+	type : "GET",
+	url : "resources/categories.xml",
+	dataType : "xml",
+	success : function(xml) {
+		$(xml).find('Categories').each(function() {
+			var obj = new Object();
+			var $category = $(this);
+			var categoryId = $category.find("CategoryID").text();
+			var description = $category.find('Description').text();
+			var categoryName = $category.find('CategoryName').text();
+			obj.categoryId = categoryId;
+			obj.categoryName = categoryName;
+			obj.description = description;
+			obj.showed=false;
+			categories.push(obj);
+			categoryList += "<li id='categoryId"+categoryId+"'>"
+							+"<span onclick='showCategoryDetail("+categoryId+")'>"
+			                   +categoryName +"</span>"
+			                   +" <ol type='a' id='productsOfCategoryId"+categoryId+"'></ol> </li>";
+		});
+		$("#categoryList1").html(categoryList);
+		
+		
+	}
+});
+// load products
+$.ajax({
+	type : "GET",
+	url : "resources/products.xml",
+	dataType : "xml",
+	success : function(xml) {
+		$(xml).find('Products').each(function() {
+			var htmlStr="";
+			var obj = new Object();
+			var $product = $(this);
+			var id = $product.find("ProductID").text();
+			var name = $product.find('ProductName').text();
+			var categoryID = $product.find('CategoryID').text();
+			var quantityPerUnit = $product.find('QuantityPerUnit').text();
+			var unitPrice = $product.find('UnitPrice').text();
+			obj.id = id;
+			obj.name = name;
+			obj.categoryID = categoryID;
+			obj.quantityPreUnit = quantityPerUnit;
+			obj.unitPrice = unitPrice;
+			products.push(obj);
+			htmlStr ="<li id='productId"+id+"' ><span onclick='showProductDetail("+id+")'> "+name+" </span></li>";
+			$("#productsOfCategoryId"+categoryID).append(htmlStr);
+			
+		});
+		
+	}
+});
+function showCategoryDetail(categoryId){
+	var i =0 ; 
+	while (i<categories.length){
+		if (categories[i].categoryId == categoryId){
+			break;
+		}else{
+			i++;
+		}
+	}
+	//console.log(categories[i].description);
+	$("#dialog-1").dialog({
+        title: 'Category: ' + categories[i].categoryName
+    });
+	$("#dialog-1").html(categories[i].description);
+		$( "#dialog-1" ).dialog( "open" );
+	
+}
+function showProductDetail(id){
+	var i =0 ; 
+	while (i<products.length){
+		if (products[i].id == id){
+			break;
+		}else{
+			i++;
+		}
+	}
+	var htmlStr ="Price: "+ products[i].unitPrice+"<br>Quantity per unit: "+ products[i].quantityPreUnit;
+	$("#dialog-1").dialog({
+        title: 'Product: '+products[i].name
+    });
+	$("#dialog-1").html(htmlStr);
+		$( "#dialog-1" ).dialog( "open" );
+	
+}
+</script>
+</html>
